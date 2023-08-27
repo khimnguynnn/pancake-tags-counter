@@ -5,7 +5,7 @@ import {StoreToken} from "./store.js"
 const routes = [
     {path: '/', component: () => import('./components/HomeView.vue')},
     {path: '/dashboard', component: () => import('./components/DashboardView.vue'), meta: { requiresAuth: true }},
-    {path: '/:id/tags', component: () => import('./components/TagCounter.vue'), meta: { requiresAuth: true },props: true,}
+    {path: '/:id/tags', component: () => import('./components/TagCounter.vue'), meta: { requiresAuth: true }}
 ]
 
 const router = createRouter({
