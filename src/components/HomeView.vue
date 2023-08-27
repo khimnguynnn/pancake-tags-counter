@@ -35,7 +35,7 @@ onMounted(() => {
 })
 function onSubmitToken() {
   store.setToken(access_token.value)
-  console.log(store.access_token)
+
   router.push("/dashboard")
 }
 </script>
