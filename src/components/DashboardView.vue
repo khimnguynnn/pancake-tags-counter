@@ -13,7 +13,7 @@
           <router-link :to="`/${pageInfor.pageIds[index]}/tags`" class="hover:bg-gray-400 cursor-pointer rounded-2xl">
             <img class="mx-auto mb-4 w-36 h-36 rounded-full" :src="pageInfor.imageSrcs[index]" alt="Bonnie Avatar">
             <h3 class="mb-1 text-xl font-semibold tracking-tight text-gray-900 dark:text-white">
-              <a>a{{pageInfor.pageNames[index]}}</a>
+              <a>{{pageInfor.pageNames[index]}}</a>
             </h3>
             <p>{{pageInfor.pageIds[index]}}</p>
           </router-link>
@@ -44,8 +44,6 @@ onMounted(async () => {
 
   try {
     const response = await axios.get(`https://pages.fm/api/v1/pages?access_token=${store.access_token}`)
-    console.log(response.data)
-
 
     if (response.status === 200 && !response.data.error_code) {
       const totalPages = response.data.categorized.activated
