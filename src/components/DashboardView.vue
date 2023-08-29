@@ -55,12 +55,8 @@ onMounted(async () => {
     if (response.status === 200 && !response.data.error_code) {
       const totalPages = response.data.categorized.activated
       totalPages.forEach((page) => {
-        // pageInfo.pageNames.push(page.name)
-        // pageInfo.pageIds.push(page.id)
-        // pageInfo.imageSrcs.push(`https://pages.fm/api/v1/pages/${page.id}/avatar?access_token=${store.access_token}`)
         pageInfo.value.push({name: page.name, id: page.id, img: `https://pages.fm/api/v1/pages/${page.id}/avatar?access_token=${store.access_token}`})
       })
-      console.log(pageInfo.value)
     } else {
       isError.value = true
       ErrMsg.value = response.data.message
