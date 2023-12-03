@@ -40,7 +40,7 @@ const store = StoreToken()
 const peopleCounts = ref(0)
 
 
-watch(selected,async (newVal,oldVal) => {
+watch(selected,async (newVal, _) => {
   peopleCounts.value = 0
   if (newVal.length === 0) {
     return 1
