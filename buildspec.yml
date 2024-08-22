@@ -9,8 +9,8 @@ phases:
       - npm run build
 
   post_build:
-  commands:
-    - aws s3 sync dist/ s3://s3-tags-counter-rikkei/ --delete
+    commands:
+      - aws s3 sync dist/ s3://s3-tags-counter-rikkei/ --delete
 
 artifacts:
   files:
