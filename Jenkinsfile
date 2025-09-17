@@ -7,7 +7,7 @@ pipeline {
         SONAR_TOKEN = credentials('sonarqube-token')
         SONAR_PROJECT_KEY = "pancake-tags-counter"
         SONAR_HOST_URL = "http://sonarqube-sonarqube.security-tools.svc.cluster.local:9000"
-        SONAR_HOME = tool "sonarqube-scanner"
+        // SONAR_HOME = tool "sonarqube-scanner"
     }
 
     stages {
@@ -30,7 +30,7 @@ pipeline {
                     ${SONAR_HOME}/bin/sonar-scanner \
                     -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
                     -Dsonar.sources=. \
-                    -Dsonar.login=${SONAR_TOKEN}
+                    -Dsonar.login=jenkinsci
                     '''
                 }
             }
@@ -38,7 +38,7 @@ pipeline {
 
         stage("Quality Gate") {
             steps {
-                timeout(time: 1, unit: 'HOURS') {
+                timeout(time: 10, unit: 'MINUTES') {
                     waitForQualityGate abortPipeline: true
                 }
             }
