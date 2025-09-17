@@ -43,5 +43,48 @@ pipeline {
                 }
             }
         }
+
+        stage("build container image with kaniko") {
+    agent {
+        kubernetes {
+            yaml """
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    app: kaniko
+spec:
+  containers:
+  - name: kaniko
+    image: gcr.io/kaniko-project/executor:latest
+    command:
+    - cat
+    tty: true
+    volumeMounts:
+    - name: kaniko-secret
+      mountPath: /kaniko/.docker
+  volumes:
+  - name: kaniko-secret
+    secret:
+      secretName: regcred
+"""
+        }
+    }
+            steps {
+                container('kaniko') {
+                    script {
+                        env.IMAGE_NAME = "khimnguynn/pancake-tags-counter"
+                        env.IMAGE_TAG = "latest"
+                    }
+                    sh """
+                    /kaniko/executor \
+                    --context \$WORKSPACE \
+                    --dockerfile \$WORKSPACE/Dockerfile \
+                    --destination \$IMAGE_NAME:\$IMAGE_TAG \
+                    --docker-config /kaniko/.docker
+                    """
+                }
+            }
+        }
     }
 }
