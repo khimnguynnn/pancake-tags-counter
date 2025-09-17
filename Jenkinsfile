@@ -26,7 +26,7 @@ pipeline {
         stage("sonar-scanner") {
             steps {
                 sh '''
-                sonar-scanner \
+                ${SONAR_HOME}/bin/sonar-scanner \
                 -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
                 -Dsonar.sources=. \
                 -Dsonar.host.url=${SONAR_HOST_URL} \
