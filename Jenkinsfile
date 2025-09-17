@@ -35,11 +35,6 @@ pipeline {
                 }
             }
         }
-        stage("sonar-scanner-report") {
-            steps {
-                sh "sonar-scanner-report"
-            }
-        } 
 
         stage("Quality Gate") {
             steps {
