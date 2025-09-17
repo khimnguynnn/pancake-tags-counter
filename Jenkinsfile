@@ -25,12 +25,27 @@ pipeline {
 
         stage("sonar-scanner") {
             steps {
-                sh '''
-                ${SONAR_HOME}/bin/sonar-scanner \
-                -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
-                -Dsonar.sources=. \
-                -Dsonar.host.url=${SONAR_HOST_URL} \
-                -Dsonar.login=${SONAR_TOKEN}'''
+                withSonarQubeEnv('sonarqube-scanner') { 
+                    sh '''
+                    ${SONAR_HOME}/bin/sonar-scanner \
+                    -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
+                    -Dsonar.sources=. \
+                    -Dsonar.login=${SONAR_TOKEN}
+                    '''
+                }
+            }
+        }
+        stage("sonar-scanner-report") {
+            steps {
+                sh "sonar-scanner-report"
+            }
+        } 
+
+        stage("Quality Gate") {
+            steps {
+                timeout(time: 1, unit: 'HOURS') {
+                    waitForQualityGate abortPipeline: true
+                }
             }
         }
     }
