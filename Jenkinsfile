@@ -30,7 +30,7 @@ pipeline {
                     ${SONAR_HOME}/bin/sonar-scanner \
                     -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
                     -Dsonar.sources=. \
-                    -Dsonar.login=jenkinsci
+                    -Dsonar.login=${SONAR_TOKEN}
                     '''
                 }
             }
