@@ -7,7 +7,7 @@ pipeline {
         SONAR_TOKEN = credentials('sonarqube-token')
         SONAR_PROJECT_KEY = "pancake-tags-counter"
         SONAR_HOST_URL = "http://sonarqube-sonarqube.security-tools.svc.cluster.local:9000"
-        // SONAR_HOME = tool "sonarqube-scanner"
+        SONAR_HOME = tool "sonarqube-scanner"
     }
 
     stages {
