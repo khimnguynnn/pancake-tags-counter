@@ -60,10 +60,14 @@ spec:
     volumeMounts:
     - name: kaniko-secret
       mountPath: /kaniko/.docker
+    - name: workspace-volume
+      mountPath: /home/jenkins/agent
   volumes:
   - name: kaniko-secret
     secret:
       secretName: regcred
+  - name: workspace-volume
+      emptyDir: {}
 """
         }
     }
@@ -75,10 +79,10 @@ spec:
                     }
                     sh """
                     /kaniko/executor \
-                    --context \$WORKSPACE \
-                    --dockerfile \$WORKSPACE/Dockerfile \
-                    --destination \$IMAGE_NAME:\$IMAGE_TAG \
-                    --docker-config /kaniko/.docker
+                    --context dir://$WORKSPACE \
+                    --dockerfile $WORKSPACE/Dockerfile \
+                    --destination $IMAGE_NAME:$IMAGE_TAG \
+                    --docker-config=/kaniko/.docker
                     """
                 }
             }
