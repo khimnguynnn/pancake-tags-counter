@@ -79,7 +79,7 @@ spec:
                     }
                     sh """
                     /kaniko/executor \
-                    --context dir://$WORKSPACE \
+                    --context $WORKSPACE \
                     --dockerfile $WORKSPACE/Dockerfile \
                     --destination $IMAGE_NAME:$IMAGE_TAG \
                     --docker-config=/kaniko/.docker
