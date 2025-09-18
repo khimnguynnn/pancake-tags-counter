@@ -17,12 +17,21 @@ pipeline {
         SONAR_HOST_URL = "http://sonarqube-sonarqube.security-tools.svc.cluster.local:9000"
         SONAR_HOME = tool "sonarqube-scanner"
         TRIVY_SERVER = "trivy.security-tools.svc.cluster.local:4954"
+        DOCKER_REGISTRY = "khimnguynn"
+        IMAGE_NAME = "pancake-tags-counter"
+        IMAGE_TAG = "${BUILD_NUMBER}-${GIT_COMMIT[0..7]}"
+        FULL_IMAGE_NAME = "${DOCKER_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}"
+        LATEST_IMAGE_NAME = "${DOCKER_REGISTRY}/${IMAGE_NAME}:latest"
     }
 
     stages {
         stage("Checkout") {
             steps {
                 echo "Starting pipeline execution..."
+                echo "Build Number: ${BUILD_NUMBER}"
+                echo "Git Commit: ${GIT_COMMIT[0..7]}"
+                echo "Image Tag: ${IMAGE_TAG}"
+                echo "Full Image Name: ${FULL_IMAGE_NAME}"
                 checkout scm
             }
         }
@@ -60,16 +69,23 @@ pipeline {
 
             steps {
                 echo "Building container image with Kaniko..."
+                echo "Building image: ${FULL_IMAGE_NAME}"
                 container('kaniko') {
                     withEnv(['PATH+EXTRA=/busybox:/kaniko']) {
                         sh '''#!/busybox/sh
                         echo "Checking Dockerfile..."
                         ls -la `pwd`/Dockerfile
-                        echo "Starting Kaniko build..."
+                        echo "Starting Kaniko build for versioned image..."
                         /kaniko/executor --context `pwd` \
                         --dockerfile `pwd`/Dockerfile \
-                        --destination khimnguynn/pancake-tags-counter:latest
-                        echo "Container image built successfully!"
+                        --destination ${FULL_IMAGE_NAME}
+                        echo "Building latest tag..."
+                        /kaniko/executor --context `pwd` \
+                        --dockerfile `pwd`/Dockerfile \
+                        --destination ${LATEST_IMAGE_NAME}
+                        echo "Container images built successfully!"
+                        echo "Versioned image: ${FULL_IMAGE_NAME}"
+                        echo "Latest image: ${LATEST_IMAGE_NAME}"
                         '''
                     }
                 }
@@ -95,13 +111,18 @@ spec:
             }
             steps {
                 echo "Running Trivy security scan..."
+                echo "Scanning image: ${FULL_IMAGE_NAME}"
                 container('trivy') {
                     sh '''
-                    echo "Scanning image for security vulnerabilities..."
+                    echo "Scanning versioned image for security vulnerabilities..."
                     trivy image --server http://${TRIVY_SERVER} \
                     --format table \
-                    khimnguynn/pancake-tags-counter:latest --scanners secret
-                    echo "Security scan completed!"
+                    ${FULL_IMAGE_NAME} --scanners secret
+                    echo "Scanning latest image for security vulnerabilities..."
+                    trivy image --server http://${TRIVY_SERVER} \
+                    --format table \
+                    ${LATEST_IMAGE_NAME} --scanners secret
+                    echo "Security scan completed for both images!"
                     '''
                 }
             }
@@ -111,10 +132,16 @@ spec:
     post {
         always {
             echo "Pipeline execution completed!"
+            echo "Final image tags:"
+            echo "  - Versioned: ${FULL_IMAGE_NAME}"
+            echo "  - Latest: ${LATEST_IMAGE_NAME}"
             cleanWs()
         }
         success {
             echo "Pipeline executed successfully! ✅"
+            echo "Images pushed to registry:"
+            echo "  - ${FULL_IMAGE_NAME}"
+            echo "  - ${LATEST_IMAGE_NAME}"
         }
         failure {
             echo "Pipeline failed! ❌"
