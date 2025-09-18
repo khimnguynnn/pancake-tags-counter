@@ -45,33 +45,16 @@ pipeline {
         // }
 
         stage("build container image with kaniko") {
-            agent { kubernetes {
-        defaultContainer 'kaniko'
-        yaml '''
-kind: Pod
-spec:
-  containers:
-  - name: kaniko
-    image: gcr.io/kaniko-project/executor:debug
-    imagePullPolicy: Always
-    command:
-    - /busybox/sh
-    args:
-    - -c
-    - sleep 99d
-    volumeMounts:
-      - name: docker-registry-config
-        mountPath: /kaniko/.docker
-  volumes:
-    - name: docker-registry-config
-      secret:
-        secretName: regcred
-'''
-   } }
+            agent { 
+                kubernetes {
+                    defaultContainer 'kaniko'
+                    yamlFile 'pod-template.yaml'
+                }
+            }
 
             steps {
-                container('kaniko') {
-                    sh '''
+                container('kaniko', shell: '/busybox/sh') {
+                    sh '''#!/busybox/sh
                     /kaniko/executor --context `pwd` --dockerfile `pwd`/Dockerfile --destination khimnguynn/pancake-tags-counter:latest
                     '''
                 }
