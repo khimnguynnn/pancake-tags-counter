@@ -67,7 +67,7 @@ spec:
     secret:
       secretName: regcred
   - name: workspace-volume
-      emptyDir: {}
+    emptyDir: {}
 """
         }
     }
