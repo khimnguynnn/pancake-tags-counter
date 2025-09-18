@@ -54,11 +54,14 @@ pipeline {
 
             steps {
                 container('kaniko') {
-                    sh '''#!/busybox/sh
+                    withEnv(['PATH+EXTRA=/busybox:/kaniko']) {
+                        sh '''#!/busybox/sh
                         "/kaniko/executor --context `pwd` \
                         --dockerfile `pwd`/Dockerfile \
                         --destination khimnguynn/pancake-tags-counter:latest"
                     '''
+                    }
+
                 }
             }
         }
