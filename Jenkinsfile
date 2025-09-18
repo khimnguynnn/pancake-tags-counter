@@ -12,38 +12,26 @@ pipeline {
     }
 
     stages {
-        // stage("npm install") {
-        //     steps {
-        //         sh "npm install"
-        //     }
-        // }
+        stage("sonar-scanner") {
+            steps {
+                withSonarQubeEnv('sonarqube') { 
+                    sh '''
+                    ${SONAR_HOME}/bin/sonar-scanner \
+                    -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
+                    -Dsonar.sources=. \
+                    -Dsonar.login=${SONAR_TOKEN}
+                    '''
+                }
+            }
+        }
 
-        // stage("npm run build") {
-        //     steps {
-        //         sh "npm run build"
-        //     }
-        // }
-
-        // stage("sonar-scanner") {
-        //     steps {
-        //         withSonarQubeEnv('sonarqube') { 
-        //             sh '''
-        //             ${SONAR_HOME}/bin/sonar-scanner \
-        //             -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
-        //             -Dsonar.sources=. \
-        //             -Dsonar.login=${SONAR_TOKEN}
-        //             '''
-        //         }
-        //     }
-        // }
-
-        // stage("Quality Gate") {
-        //     steps {
-        //         timeout(time: 10, unit: 'MINUTES') {
-        //             waitForQualityGate abortPipeline: true
-        //         }
-        //     }
-        // }
+        stage("Quality Gate") {
+            steps {
+                timeout(time: 10, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
+                }
+            }
+        }
 
         stage("build container image with kaniko") {
             agent { 
