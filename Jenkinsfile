@@ -45,39 +45,14 @@ pipeline {
         // }
 
         stage("build container image with kaniko") {
-    agent {
-        kubernetes {
-            yaml """
-apiVersion: v1
-kind: Pod
-metadata:
-  labels:
-    app: kaniko
-spec:
-  containers:
-  - name: kaniko
-    image: gcr.io/kaniko-project/executor:latest
-    volumeMounts:
-    - name: kaniko-secret
-      mountPath: /kaniko/.docker
-    - name: workspace-volume
-      mountPath: /home/jenkins/agent
-  volumes:
-  - name: kaniko-secret
-    secret:
-      secretName: regcred
-  - name: workspace-volume
-    emptyDir: {}
-"""
-        }
-    }
+            agent {
+                label 'image-builder'
+            }
+
             steps {
-                container('kaniko') {
-                    script {
-                        env.IMAGE_NAME = "khimnguynn/pancake-tags-counter"
-                        env.IMAGE_TAG = "latest"
-                    }
-                    sh '/kaniko/executor --context /home/jenkins/agent --dockerfile /home/jenkins/agent/Dockerfile --destination khimnguynn/pancake-tags-counter:latest --docker-config=/kaniko/.docker'
+                unstash 'sources'
+                container(name: 'kaniko') {
+                    sh '/kaniko/executor --context=`pwd` --dockerfile=`pwd`/Dockerfile  --destination=khimnguynn/pancake-tags-counter:latest --insecure --skip-tls-verify'
                 }
             }
         }
