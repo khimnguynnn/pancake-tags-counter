@@ -1,10 +1,6 @@
 pipeline {
     agent any
 
-    tools {
-        nodejs("node15")
-    }
-
     options {
         timeout(time: 30, unit: 'MINUTES')
         buildDiscarder(logRotator(numToKeepStr: '10'))
