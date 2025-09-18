@@ -71,7 +71,7 @@ spec:
             steps {
                 container('kaniko') {
                     sh '''
-                    /kaniko/executor --context `pwd` --dockerfile `pwd`/Dockerfile --destination khiemnd/pancake-tags-counter:latest
+                    /kaniko/executor --context `pwd` --dockerfile `pwd`/Dockerfile --destination khimnguynn/pancake-tags-counter:latest
                     '''
                 }
             }
