@@ -8,6 +8,7 @@ pipeline {
         SONAR_PROJECT_KEY = "pancake-tags-counter"
         SONAR_HOST_URL = "http://sonarqube-sonarqube.security-tools.svc.cluster.local:9000"
         SONAR_HOME = tool "sonarqube-scanner"
+        TRIVY_SERVER = "trivy.security-tools.svc.cluster.local:4954"
     }
 
     stages {
@@ -85,7 +86,7 @@ spec:
             steps {
                 container('trivy') {
                     sh '''
-                    trivy image --server trivy.security-tools.svc.cluster.local:4954 \
+                    trivy image --server http://${TRIVY_SERVER} \
                     --format table \
                     khimnguynn/pancake-tags-counter:latest
                     '''
