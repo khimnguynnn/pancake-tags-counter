@@ -1,7 +1,16 @@
 pipeline {
-    agent  any
+    agent any
 
-    tools {nodejs("node15")}
+    tools {
+        nodejs("node15")
+    }
+
+    options {
+        timeout(time: 30, unit: 'MINUTES')
+        timestamps()
+        buildDiscarder(logRotator(numToKeepStr: '10'))
+        skipDefaultCheckout()
+    }
 
     environment {
         SONAR_TOKEN = credentials('sonarqube-token')
@@ -12,8 +21,16 @@ pipeline {
     }
 
     stages {
-        stage("sonar-scanner") {
+        stage("Checkout") {
             steps {
+                echo "Starting pipeline execution..."
+                checkout scm
+            }
+        }
+
+        stage("Sonar Scanner") {
+            steps {
+                echo "Running SonarQube analysis..."
                 withSonarQubeEnv('sonarqube') { 
                     sh '''
                     ${SONAR_HOME}/bin/sonar-scanner \
@@ -27,13 +44,14 @@ pipeline {
 
         stage("Quality Gate") {
             steps {
+                echo "Waiting for SonarQube Quality Gate..."
                 timeout(time: 10, unit: 'MINUTES') {
                     waitForQualityGate abortPipeline: true
                 }
             }
         }
 
-        stage("build container image with kaniko") {
+        stage("Build Container Image") {
             agent { 
                 kubernetes {
                     defaultContainer 'kaniko'
@@ -42,24 +60,28 @@ pipeline {
             }
 
             steps {
+                echo "Building container image with Kaniko..."
                 container('kaniko') {
                     withEnv(['PATH+EXTRA=/busybox:/kaniko']) {
-                    sh '''#!/busybox/sh
-                    ls -la `pwd`/Dockerfile
-                    /kaniko/executor --context `pwd` \
-                    --dockerfile `pwd`/Dockerfile \
-                    --destination khimnguynn/pancake-tags-counter:latest
-                    '''
+                        sh '''#!/busybox/sh
+                        echo "Checking Dockerfile..."
+                        ls -la `pwd`/Dockerfile
+                        echo "Starting Kaniko build..."
+                        /kaniko/executor --context `pwd` \
+                        --dockerfile `pwd`/Dockerfile \
+                        --destination khimnguynn/pancake-tags-counter:latest
+                        echo "Container image built successfully!"
+                        '''
                     }
-
                 }
             }
         }
 
-        stage("Scan security code with trivy") {
-            agent { kubernetes {
-                defaultContainer 'trivy'
-                yaml '''
+        stage("Security Scan with Trivy") {
+            agent { 
+                kubernetes {
+                    defaultContainer 'trivy'
+                    yaml '''
 kind: Pod
 spec:
   containers:
@@ -70,16 +92,36 @@ spec:
     args:
     - 99d
 '''
-            } }
+                } 
+            }
             steps {
+                echo "Running Trivy security scan..."
                 container('trivy') {
                     sh '''
+                    echo "Scanning image for security vulnerabilities..."
                     trivy image --server http://${TRIVY_SERVER} \
                     --format table \
                     khimnguynn/pancake-tags-counter:latest --scanners secret
+                    echo "Security scan completed!"
                     '''
                 }
             }
+        }
+    }
+
+    post {
+        always {
+            echo "Pipeline execution completed!"
+            cleanWs()
+        }
+        success {
+            echo "Pipeline executed successfully! ✅"
+        }
+        failure {
+            echo "Pipeline failed! ❌"
+        }
+        unstable {
+            echo "Pipeline is unstable! ⚠️"
         }
     }
 }
