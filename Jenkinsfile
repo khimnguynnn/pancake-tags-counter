@@ -61,28 +61,28 @@ pipeline {
         }
 
         stage("Build Container Image") {
-            agent { 
-                kubernetes {
-                    defaultContainer 'kaniko'
-                    yamlFile 'pod-template.yaml'
-                }
-            }
-
             steps {
                 echo "Building container image with Kaniko..."
                 echo "Building image: ${env.FULL_IMAGE_NAME}"
-                container('kaniko') {
-                    withEnv(['PATH+EXTRA=/busybox:/kaniko']) {
-                        sh '''#!/busybox/sh
-                        echo "Checking Dockerfile..."
-                        ls -la `pwd`/Dockerfile
-                        echo "Starting Kaniko build for versioned image..."
-                        /kaniko/executor --context `pwd` \
-                        --dockerfile `pwd`/Dockerfile \
-                        --destination ${FULL_IMAGE_NAME}
-                        echo "Container images built successfully!"
-                        echo "Versioned image: ${FULL_IMAGE_NAME}"
-                        '''
+                script {
+                    def kanikoPod = kubernetes.pod {
+                        yamlFile 'pod-template.yaml'
+                    }
+                    kanikoPod.inside {
+                        withEnv(['PATH+EXTRA=/busybox:/kaniko']) {
+                            sh '''#!/busybox/sh
+                            echo "Checking workspace contents..."
+                            ls -la
+                            echo "Checking Dockerfile..."
+                            ls -la Dockerfile
+                            echo "Starting Kaniko build for versioned image..."
+                            /kaniko/executor --context . \
+                            --dockerfile ./Dockerfile \
+                            --destination ${FULL_IMAGE_NAME}
+                            echo "Container image built successfully!"
+                            echo "Versioned image: ${FULL_IMAGE_NAME}"
+                            '''
+                        }
                     }
                 }
             }
@@ -125,10 +125,8 @@ spec:
             echo "Pipeline execution completed!"
             script {
                 def versionedImage = "${env.DOCKER_REGISTRY}/${env.IMAGE_NAME}:${env.IMAGE_TAG}"
-                def latestImage = "${env.DOCKER_REGISTRY}/${env.IMAGE_NAME}:latest"
-                echo "Final image tags:"
+                echo "Final image tag:"
                 echo "  - Versioned: ${versionedImage}"
-                echo "  - Latest: ${latestImage}"
             }
             cleanWs()
         }
@@ -136,10 +134,8 @@ spec:
             echo "Pipeline executed successfully! ✅"
             script {
                 def versionedImage = "${env.DOCKER_REGISTRY}/${env.IMAGE_NAME}:${env.IMAGE_TAG}"
-                def latestImage = "${env.DOCKER_REGISTRY}/${env.IMAGE_NAME}:latest"
-                echo "Images pushed to registry:"
+                echo "Image pushed to registry:"
                 echo "  - ${versionedImage}"
-                echo "  - ${latestImage}"
             }
         }
         failure {
