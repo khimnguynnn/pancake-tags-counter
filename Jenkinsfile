@@ -19,20 +19,26 @@ pipeline {
         TRIVY_SERVER = "trivy.security-tools.svc.cluster.local:4954"
         DOCKER_REGISTRY = "khimnguynn"
         IMAGE_NAME = "pancake-tags-counter"
-        IMAGE_TAG = "${BUILD_NUMBER}-${GIT_COMMIT[0..7]}"
-        FULL_IMAGE_NAME = "${DOCKER_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}"
-        LATEST_IMAGE_NAME = "${DOCKER_REGISTRY}/${IMAGE_NAME}:latest"
     }
 
     stages {
         stage("Checkout") {
             steps {
                 echo "Starting pipeline execution..."
-                echo "Build Number: ${BUILD_NUMBER}"
-                echo "Git Commit: ${GIT_COMMIT[0..7]}"
-                echo "Image Tag: ${IMAGE_TAG}"
-                echo "Full Image Name: ${FULL_IMAGE_NAME}"
                 checkout scm
+                script {
+                    env.GIT_COMMIT_SHORT = sh(
+                        script: 'git rev-parse --short HEAD',
+                        returnStdout: true
+                    ).trim()
+                    env.IMAGE_TAG = "${BUILD_NUMBER}-${env.GIT_COMMIT_SHORT}"
+                    env.FULL_IMAGE_NAME = "${env.DOCKER_REGISTRY}/${env.IMAGE_NAME}:${env.IMAGE_TAG}"
+                    env.LATEST_IMAGE_NAME = "${env.DOCKER_REGISTRY}/${env.IMAGE_NAME}:latest"
+                }
+                echo "Build Number: ${BUILD_NUMBER}"
+                echo "Git Commit: ${env.GIT_COMMIT_SHORT}"
+                echo "Image Tag: ${env.IMAGE_TAG}"
+                echo "Full Image Name: ${env.FULL_IMAGE_NAME}"
             }
         }
 
@@ -69,7 +75,7 @@ pipeline {
 
             steps {
                 echo "Building container image with Kaniko..."
-                echo "Building image: ${FULL_IMAGE_NAME}"
+                echo "Building image: ${env.FULL_IMAGE_NAME}"
                 container('kaniko') {
                     withEnv(['PATH+EXTRA=/busybox:/kaniko']) {
                         sh '''#!/busybox/sh
@@ -111,18 +117,13 @@ spec:
             }
             steps {
                 echo "Running Trivy security scan..."
-                echo "Scanning image: ${FULL_IMAGE_NAME}"
+                echo "Scanning image: ${env.FULL_IMAGE_NAME}"
                 container('trivy') {
                     sh '''
                     echo "Scanning versioned image for security vulnerabilities..."
                     trivy image --server http://${TRIVY_SERVER} \
                     --format table \
                     ${FULL_IMAGE_NAME} --scanners secret
-                    echo "Scanning latest image for security vulnerabilities..."
-                    trivy image --server http://${TRIVY_SERVER} \
-                    --format table \
-                    ${LATEST_IMAGE_NAME} --scanners secret
-                    echo "Security scan completed for both images!"
                     '''
                 }
             }
