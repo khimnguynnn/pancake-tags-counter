@@ -66,5 +66,31 @@ pipeline {
                 }
             }
         }
+
+        stage("Scan security code with trivy") {
+            agent { kubernetes {
+                defaultContainer 'trivy'
+                yaml '''
+kind: Pod
+spec:
+  containers:
+  - name: trivy
+    image: aquasec/trivy:latest
+    command:
+    - sleep
+    args:
+    - 99d
+'''
+            } }
+            steps {
+                container('trivy') {
+                    sh '''
+                    trivy image --server trivy.security-tools.svc.cluster.local:4954 \
+                    --format table \
+                    khimnguynn/pancake-tags-counter:latest
+                    '''
+                }
+            }
+        }
     }
 }
