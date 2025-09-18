@@ -63,8 +63,8 @@ spec:
         mountPath: /kaniko/.docker
   volumes:
     - name: docker-registry-config
-      configMap:
-        name: regcred
+      secret:
+        secretName: regcred
 '''
    } }
 
