@@ -54,10 +54,10 @@ pipeline {
 
             steps {
                 container('kaniko') {
-                    sh '''
-                    /busybox/sh -c "/kaniko/executor --context `pwd` \
-                                --dockerfile `pwd`/Dockerfile \
-                                --destination khimnguynn/pancake-tags-counter:latest"
+                    sh '''#!/busybox/sh
+                        "/kaniko/executor --context `pwd` \
+                        --dockerfile `pwd`/Dockerfile \
+                        --destination khimnguynn/pancake-tags-counter:latest"
                     '''
                 }
             }
