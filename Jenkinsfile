@@ -77,21 +77,7 @@ spec:
                         env.IMAGE_NAME = "khimnguynn/pancake-tags-counter"
                         env.IMAGE_TAG = "latest"
                     }
-                    sh """
-                    echo "Workspace: $WORKSPACE"
-                    echo "Contents of workspace:"
-                    ls -la $WORKSPACE
-                    echo "Contents of mounted workspace:"
-                    ls -la /home/jenkins/agent
-                    echo "Dockerfile exists:"
-                    ls -la $WORKSPACE/Dockerfile
-                    echo "Running Kaniko executor..."
-                    /kaniko/executor \
-                    --context /home/jenkins/agent \
-                    --dockerfile /home/jenkins/agent/Dockerfile \
-                    --destination $IMAGE_NAME:$IMAGE_TAG \
-                    --docker-config=/kaniko/.docker
-                    """
+                    sh '/kaniko/executor --context /home/jenkins/agent --dockerfile /home/jenkins/agent/Dockerfile --destination khimnguynn/pancake-tags-counter:latest --docker-config=/kaniko/.docker'
                 }
             }
         }
