@@ -55,9 +55,10 @@ spec:
     image: gcr.io/kaniko-project/executor:debug
     imagePullPolicy: Always
     command:
-    - sleep
+    - /busybox/sh
     args:
-    - 99d
+    - -c
+    - sleep 99d
     volumeMounts:
       - name: docker-registry-config
         mountPath: /kaniko/.docker
