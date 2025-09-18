@@ -132,16 +132,24 @@ spec:
     post {
         always {
             echo "Pipeline execution completed!"
-            echo "Final image tags:"
-            echo "  - Versioned: ${FULL_IMAGE_NAME}"
-            echo "  - Latest: ${LATEST_IMAGE_NAME}"
+            script {
+                def versionedImage = "${env.DOCKER_REGISTRY}/${env.IMAGE_NAME}:${env.IMAGE_TAG}"
+                def latestImage = "${env.DOCKER_REGISTRY}/${env.IMAGE_NAME}:latest"
+                echo "Final image tags:"
+                echo "  - Versioned: ${versionedImage}"
+                echo "  - Latest: ${latestImage}"
+            }
             cleanWs()
         }
         success {
             echo "Pipeline executed successfully! ✅"
-            echo "Images pushed to registry:"
-            echo "  - ${FULL_IMAGE_NAME}"
-            echo "  - ${LATEST_IMAGE_NAME}"
+            script {
+                def versionedImage = "${env.DOCKER_REGISTRY}/${env.IMAGE_NAME}:${env.IMAGE_TAG}"
+                def latestImage = "${env.DOCKER_REGISTRY}/${env.IMAGE_NAME}:latest"
+                echo "Images pushed to registry:"
+                echo "  - ${versionedImage}"
+                echo "  - ${latestImage}"
+            }
         }
         failure {
             echo "Pipeline failed! ❌"
