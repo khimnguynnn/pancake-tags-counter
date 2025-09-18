@@ -78,9 +78,17 @@ spec:
                         env.IMAGE_TAG = "latest"
                     }
                     sh """
+                    echo "Workspace: $WORKSPACE"
+                    echo "Contents of workspace:"
+                    ls -la $WORKSPACE
+                    echo "Contents of mounted workspace:"
+                    ls -la /home/jenkins/agent
+                    echo "Dockerfile exists:"
+                    ls -la $WORKSPACE/Dockerfile
+                    echo "Running Kaniko executor..."
                     /kaniko/executor \
-                    --context $WORKSPACE \
-                    --dockerfile $WORKSPACE/Dockerfile \
+                    --context /home/jenkins/agent \
+                    --dockerfile /home/jenkins/agent/Dockerfile \
                     --destination $IMAGE_NAME:$IMAGE_TAG \
                     --docker-config=/kaniko/.docker
                     """
