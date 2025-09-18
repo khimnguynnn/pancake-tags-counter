@@ -76,7 +76,7 @@ spec:
                     sh '''
                     trivy image --server http://${TRIVY_SERVER} \
                     --format table \
-                    khimnguynn/pancake-tags-counter:latest --scanners secret
+                    khimnguynn/pancake-tags-counter:latest
                     '''
                 }
             }
