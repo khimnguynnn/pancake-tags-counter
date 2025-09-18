@@ -33,7 +33,6 @@ pipeline {
                     ).trim()
                     env.IMAGE_TAG = "${BUILD_NUMBER}-${env.GIT_COMMIT_SHORT}"
                     env.FULL_IMAGE_NAME = "${env.DOCKER_REGISTRY}/${env.IMAGE_NAME}:${env.IMAGE_TAG}"
-                    env.LATEST_IMAGE_NAME = "${env.DOCKER_REGISTRY}/${env.IMAGE_NAME}:latest"
                 }
                 echo "Build Number: ${BUILD_NUMBER}"
                 echo "Git Commit: ${env.GIT_COMMIT_SHORT}"
@@ -85,13 +84,8 @@ pipeline {
                         /kaniko/executor --context `pwd` \
                         --dockerfile `pwd`/Dockerfile \
                         --destination ${FULL_IMAGE_NAME}
-                        echo "Building latest tag..."
-                        /kaniko/executor --context `pwd` \
-                        --dockerfile `pwd`/Dockerfile \
-                        --destination ${LATEST_IMAGE_NAME}
                         echo "Container images built successfully!"
                         echo "Versioned image: ${FULL_IMAGE_NAME}"
-                        echo "Latest image: ${LATEST_IMAGE_NAME}"
                         '''
                     }
                 }
